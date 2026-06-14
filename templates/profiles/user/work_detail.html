@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ-наряд от {{ work.time|date:"d.m.Y H:i" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Заказ-наряд от {{ work.time|date:"d.m.Y H:i" }}</h2>
+  </div>
+
+  <div class="mb-3">
+    {% if work.status == 'waiting' %}
+      <span class="badge bg-info fs-6">Ожидание начала</span>
+    {% elif work.status == 'in_progress' %}
+      <span class="badge bg-primary fs-6">Выполняется</span>
+    {% elif work.status == 'completed' %}
+      <span class="badge bg-success fs-6">Завершен</span>
+    {% elif work.status == 'cancelled' %}
+      <span class="badge bg-secondary fs-6">Отменен</span>
+    {% endif %}
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      Основная информация
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Зона выполнения работ</p>
+          <p class="mb-3 fw-semibold">{{ work.zone|default:"—" }}</p>
+
+          <p class="mb-1 text-muted small">Адрес</p>
+          <p class="mb-3 fw-semibold">{{ work.address|default:"—" }}</p>
+
+          <p class="mb-1 text-muted small">Вид работ</p>
+          <p class="mb-3 fw-semibold">{{ work.work_type|default:"—" }}</p>
+
+          <p class="mb-1 text-muted small">Участок</p>
+          <p class="mb-0 fw-semibold">{{ work.department|default:"—" }}</p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Дата и время начала</p>
+          <p class="mb-3 fw-semibold">{{ work.time|date:"d.m.Y H:i" }}</p>
+
+          <p class="mb-1 text-muted small">Плановое окончание</p>
+          <p class="mb-3 fw-semibold">{{ work.planned_end_time|date:"d.m.Y H:i"|default:"—" }}</p>
+
+          <p class="mb-1 text-muted small">Продолжительность</p>
+          <p class="mb-3 fw-semibold">{{ work.duration }} ч.</p>
+
+          <p class="mb-1 text-muted small">Оплата</p>
+          <p class="mb-0 fw-semibold">{{ work.payment }} ₽</p>
+        </div>
+      </div>
+
+      {% if work.description %}
+      <hr>
+      <p class="mb-1 text-muted small">Описание задания</p>
+      <p class="mb-0">{{ work.description }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if work.actual_start_time or work.actual_end_time %}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-clock-history me-2"></i>Фактическое время
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Фактическое начало</p>
+          <p class="mb-0 fw-semibold">{{ work.actual_start_time|date:"d.m.Y H:i"|default:"—" }}</p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Фактическое окончание</p>
+          <p class="mb-0 fw-semibold">{{ work.actual_end_time|date:"d.m.Y H:i"|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      Состав бригады
+    </div>
+    <div class="card-body">
+      <p class="mb-1 text-muted small">Старший сотрудник</p>
+      <p class="mb-3 fw-semibold">{{ work.leadEmployee.FIO|default:"не назначен" }}</p>
+
+      <p class="mb-2 text-muted small">
+        Сотрудники ({{ work.employees.count }} / {{ work.employeesNeeded }})
+      </p>
+      {% if work.employees.exists %}
+      <ul class="list-group list-group-flush">
+        {% for emp in work.employees.all %}
+        <li class="list-group-item px-0 py-1 d-flex align-items-center gap-2">
+          <i class="bi bi-person text-muted"></i>
+          {{ emp.FIO }}
+          {% if emp.id == work.leadEmployee_id %}
+            <span class="badge bg-warning text-dark ms-1">Старший</span>
+          {% endif %}
+          {% if emp.id == user.id %}
+            <span class="badge bg-primary ms-1">Вы</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted mb-0">Сотрудники не назначены</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if work.responsible_admin %}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      Ответственный руководитель
+    </div>
+    <div class="card-body">
+      <p class="mb-0 fw-semibold">{{ work.responsible_admin.full_name|default:"—" }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if work.completion_comment %}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-chat-left-text me-2"></i>Комментарий по закрытию
+    </div>
+    <div class="card-body">
+      <p class="mb-0">{{ work.completion_comment }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{% url 'profiles:user_current_works' %}" class="btn btn-outline-secondary">Назад</a>
+  </div>
+</div>
+{% endblock %}

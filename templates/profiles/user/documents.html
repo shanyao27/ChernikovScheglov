@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Мои документы{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Мои документы</h2>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="mb-3">Статус допуска к работам:</h5>
+      {% if user.noDocuments %}
+        <div class="alert alert-custom">
+          Все документы подписаны
+        </div>
+      {% else %}
+        <div class="alert alert-custom">
+          Подпишите все документы (осталось: {{ pending_docs.count }})
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if pending_docs %}
+  <div class="card mb-4 card-custom">
+    <div class="card-header card-header-primary">
+      <h5 class="mb-0">
+        Не подписано: {{ pending_docs.count }}
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="list-group list-group-flush">
+        {% for doc in pending_docs %}
+        <div class="list-group-item list-group-item-custom">
+          <div class="row align-items-center">
+            <div class="col">
+              <strong class="text-ink">{{ doc.title }}</strong>
+              {% if doc.description %}
+                <br><small class="text-muted">{{ doc.description }}</small>
+              {% endif %}
+              <br>
+              <small class="text-muted">{{ doc.get_category_display }} от {{ doc.created_at|date:"d.m.Y" }}</small>
+            </div>
+            <div class="col-auto">
+              <a href="{% url 'profiles:view_document' doc.id %}"
+                 class="btn btn-outline-primary btn-sm" target="_blank">
+                Читать
+              </a>
+              <a href="{% url 'profiles:sign_document' doc.id %}"
+                 class="btn btn-primary btn-sm">
+                Подписать
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if signed_docs %}
+  <div class="card mb-4 card-custom">
+    <div class="card-header card-header-dark">
+      <h5 class="mb-0">
+        Подписано: {{ signed_docs.count }}
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="list-group list-group-flush">
+        {% for doc in signed_docs %}
+        <div class="list-group-item list-group-item-custom">
+          <div class="row align-items-center">
+            <div class="col">
+              <strong class="text-ink">{{ doc.title }}</strong>
+              <br>
+              <small class="text-muted">
+                Подписан:
+                {% with signature=doc.signatures.all|first %}
+                  {{ signature.signed_at|date:"d.m.Y H:i" }}
+                {% endwith %}
+              </small>
+            </div>
+            <div class="col-auto">
+              <span class="fw-semibold small" style="color: var(--royal);">Подписано</span>
+              <a href="{% url 'profiles:view_document' doc.id %}"
+                 class="btn btn-outline-secondary btn-sm" target="_blank">
+                <i class="bi bi-file-pdf"></i> PDF
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not pending_docs and not signed_docs %}
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mt-3 mb-0">Нет доступных документов</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

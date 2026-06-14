@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Проверка #{{ inspection.id }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h3 class="mb-1">Проверка #{{ inspection.id }}</h3>
+    <div class="text-muted">
+      Зона: <b>{{ inspection.object_number|default:"не указана" }}</b> · Создано: {{ inspection.created_at|date:"d.m.Y H:i" }}
+    </div>
+  </div>
+  <a href="{% url 'profiles:inspector_video_inspections' %}" class="btn btn-outline-secondary">Назад</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <b>Статус:</b><br>
+        {% if inspection.status == 'done' %}
+          <span class="badge bg-success">готово</span>
+        {% elif inspection.status == 'processing' %}
+          <span class="badge bg-warning text-dark">обработка</span>
+        {% elif inspection.status == 'failed' %}
+          <span class="badge bg-danger">ошибка</span>
+        {% else %}
+          <span class="badge bg-secondary">в очереди</span>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <b>Что проверяем:</b><br>
+        {% if inspection.check_helmet %}каски{% endif %}{% if inspection.check_helmet and inspection.check_mask %} + {% endif %}{% if inspection.check_mask %}маски{% endif %}
+      </div>
+      <div class="col-md-3"><b>Порог:</b><br>{{ inspection.violation_seconds }} сек</div>
+      <div class="col-md-3"><b>Шаг кадров:</b><br>{{ inspection.frame_stride }}</div>
+    </div>
+
+    {% if auto_started %}
+      <div class="alert alert-info mt-3 mb-0">Обработка была автоматически запущена при открытии этой страницы.</div>
+    {% endif %}
+
+    {% if inspection.status == 'queued' %}
+      <div class="alert alert-secondary mt-3 mb-0">Видео загружено и ожидает запуска обработки. Если статус не меняется, обновите страницу через несколько секунд.</div>
+    {% elif inspection.status == 'processing' %}
+      <div class="alert alert-warning mt-3 mb-0">Идет обработка видео. Скриншоты нарушений появятся ниже после завершения анализа.</div>
+    {% elif inspection.status == 'done' and not violations %}
+      <div class="alert alert-success mt-3 mb-0">Обработка завершена. Нарушения по заданным условиям не обнаружены.</div>
+    {% elif inspection.status == 'failed' %}
+      <div class="alert alert-danger mt-3 mb-0">Не удалось обработать видео.{% if inspection.error %} Причина: {{ inspection.error }}{% endif %}</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="mb-0">Найденные фрагменты нарушений</h5>
+      <span class="text-muted">Всего: {{ violations|length }}</span>
+    </div>
+
+    {% if violations %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Скрин</th>
+              <th>Время</th>
+              <th>Тип</th>
+              <th>Статус</th>
+              <th>Решение инспектора</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in violations %}
+              <tr>
+                <td>
+                  {% if v.image %}
+                    <a href="{{ v.image.url }}" target="_blank">
+                      <img src="{{ v.image.url }}" style="max-width:180px;border-radius:8px;border:1px solid #ddd">
+                    </a>
+                  {% else %}
+                    нет
+                  {% endif %}
+                </td>
+                <td>{{ v.timestamp_sec|floatformat:1 }} сек</td>
+                <td>{{ v.get_violation_type_display }}</td>
+                <td>
+                  {% if v.confirmed == True %}
+                    <span class="badge bg-success">подтверждено</span>
+                  {% elif v.confirmed == False %}
+                    <span class="badge bg-secondary">ложное</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">не проверено</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'profiles:inspector_violation_decision' inspection.id v.id %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                      <select class="form-select form-select-sm" name="employee_id" required>
+                        <option value="">-- Выберите сотрудника --</option>
+                        {% for emp in employees %}
+                          <option value="{{ emp.id }}">{{ emp.FIO }} ({{ emp.number|default:"без табельного" }})</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <select class="form-select form-select-sm mb-2" name="sanction_reason" required>
+                      <option value="">Выберите причину нарушения</option>
+                      <option value="Грубое нарушение требований СИЗ">Грубое нарушение требований СИЗ</option>
+                      <option value="Отсутствие каски">Отсутствие каски</option>
+                      <option value="Отсутствие маски">Отсутствие маски</option>
+                    </select>
+                    <select class="form-select form-select-sm mb-2" name="sanction_type" required>
+                      <option value="">Выберите тип санкции</option>
+                      <option value="explanation">Объяснительная</option>
+                      <option value="fine">Штраф</option>
+                    </select>
+                    <input class="form-control form-control-sm mb-2" name="comment" placeholder="Комментарий" value="{{ v.comment }}">
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-sm btn-outline-success" name="decision" value="yes">Подтвердить</button>
+                      <button class="btn btn-sm btn-outline-danger" name="decision" value="no">Ложное</button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">Пока нет ни одного найденного фрагмента. Когда обработка завершится, здесь появятся скриншоты с временем и типом нарушения.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ-наряды{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Заказ-наряды</h2>
+      <div>
+        <a href="{% url 'profiles:admin_workobject_create' %}" class="btn btn-primary">Создать наряд</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="btn-group" role="group">
+            <a href="?status=all" class="btn btn-outline-primary {% if request.GET.status == 'all' or not request.GET.status %}active{% endif %}">Все</a>
+            <a href="?status=in_progress" class="btn btn-outline-primary {% if request.GET.status == 'in_progress' %}active{% endif %}">Выполняется</a>
+            <a href="?status=completed" class="btn btn-outline-primary {% if request.GET.status == 'completed' %}active{% endif %}">Завершенные</a>
+            <a href="?status=cancelled" class="btn btn-outline-primary {% if request.GET.status == 'cancelled' %}active{% endif %}">Отмененные</a>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center align-middle">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Адрес</th>
+                <th>Требуется</th>
+                <th>Старший</th>
+                <th>Статус</th>
+                <th>Оплата</th>
+                <th>Время</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for wo in work_objects %}
+              <tr class="{% if wo.is_completed %}table-secondary{% endif %}">
+                <td>{{ wo.id }}</td>
+                <td>{{ wo.address }}</td>
+                <td>{{ wo.employeesNeeded }}</td>
+                <td>
+                  {% if wo.leadEmployee %}
+                    {{ wo.leadEmployee.FIO }}
+                  {% else %}
+                    {% if not wo.is_completed and wo.employees.count > 0 %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-primary"
+                              data-bs-toggle="modal"
+                              data-bs-target="#assignLeadModal{{ wo.id }}">
+                        Назначить
+                      </button>
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if wo.status == 'waiting' %}
+                    <span class="badge bg-info text-dark">Ожидание начала</span>
+                  {% elif wo.status == 'in_progress' %}
+                    <span class="badge bg-primary">Выполняется</span>
+                  {% elif wo.status == 'completed' %}
+                    <span class="badge bg-success">Завершен</span>
+                  {% elif wo.status == 'cancelled' %}
+                    <span class="badge bg-secondary">Отменен</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ wo.get_status_display }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ wo.payment }} ₽</td>
+                <td>{{ wo.time|date:"d.m.Y H:i" }}</td>
+                <td>
+                  {% if wo.status == 'waiting' or wo.status == 'in_progress' %}
+                  <div class="btn-group btn-group-sm" role="group">
+                    {% if wo.status == 'waiting' %}
+                    <a href="{% url 'profiles:admin_workobject_edit' wo.id %}"
+                       class="btn btn-outline-primary"
+                       title="Редактировать">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    {% endif %}
+                    <button type="button"
+                            class="btn btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal{{ wo.id }}"
+                            title="Отменить">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="9" class="text-center">Нет нарядов</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for wo in work_objects %}
+  {% if wo.employees.count > 0 and not wo.leadEmployee and not wo.is_completed %}
+  <div class="modal fade" id="assignLeadModal{{ wo.id }}" tabindex="-1" aria-labelledby="assignLeadModalLabel{{ wo.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="assignLeadModalLabel{{ wo.id }}">Назначение старшего - Наряд #{{ wo.id }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'profiles:admin_workobject_assign_lead' wo.id %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <p>Выберите старшего сотрудника из записанных:</p>
+            <select name="employee_id" class="form-select" required>
+              <option value="">-- Выберите сотрудника --</option>
+              {% for emp in wo.employees.all %}
+                <option value="{{ emp.id }}">{{ emp.FIO }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Назначить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="modal fade" id="deleteModal{{ wo.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ wo.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel{{ wo.id }}">Подтверждение отмены</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите отменить наряд #{{ wo.id }}?</p>
+          <p><strong>Адрес:</strong> {{ wo.address }}</p>
+          <p><strong>Время:</strong> {{ wo.time|date:"d.m.Y H:i" }}</p>
+
+          {% if wo.employees.count > 0 %}
+            <div class="alert alert-warning">
+              Внимание! На этот наряд уже записаны сотрудники.
+            </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <form method="post" action="{% url 'profiles:admin_workobject_delete' wo.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Отменить наряд</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<script>
+setInterval(function() {
+  location.reload();
+}, 60000);
+</script>
+
+<style>
+  .btn-group { gap: 5px; }
+  .table td { vertical-align: middle; }
+  .table-secondary { background-color: #f8f9fa; }
+  .btn-group .btn-outline-primary.active,
+  .btn-group .btn-outline-primary:active {
+    background: var(--blue) !important;
+    color: var(--white) !important;
+    border-color: var(--blue) !important;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="notification" id="login-notification">
+  <div class="notification-content">
+    Вы вошли как: <strong>{{ user_login }}</strong>
+    ({% if user_role == 'admin' %}Администратор
+    {% elif user_role == 'inspector' %}Инспектор
+    {% elif user_role == 'medic' %}Медработник
+    {% elif user_role == 'user' %}Сотрудник{% endif %})
+  </div>
+</div>
+
+{% if user_role == 'admin' %}
+<div class="row mt-4">
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body d-flex flex-column align-items-center text-center">
+        <h5>Список пользователей</h5>
+        <p class="text-muted">Просмотр всех пользователей</p>
+        <a href="{% url 'profiles:admin_users_list' %}" class="btn btn-outline-primary mt-auto">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body d-flex flex-column align-items-center text-center">
+        <h5>Заказ-наряды</h5>
+        <p class="text-muted">Создание и управление заказ-нарядами</p>
+        <a href="{% url 'profiles:admin_workobjects_list' %}" class="btn btn-outline-primary mt-auto">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body d-flex flex-column align-items-center text-center">
+        <h5>Аттестации</h5>
+        <p class="text-muted">Создание и управление аттестациями</p>
+        <a href="{% url 'profiles:admin_test_list' %}" class="btn btn-outline-primary mt-auto">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body d-flex flex-column align-items-center text-center">
+        <h5>Документы</h5>
+        <p class="text-muted">Загрузка и управление документами</p>
+        <a href="{% url 'profiles:admin_document_list' %}" class="btn btn-outline-primary mt-auto">Перейти</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if user_role == 'inspector' %}
+<div class="row mt-4">
+  <div class="col-md-4 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body d-flex flex-column align-items-center text-center">
+        <h5>Проверка СИЗ по видео</h5>
+        <p class="text-muted">Проверка соблюдения безопасности рабочих</p>
+        <a href="{% url 'profiles:inspector_video_inspections' %}" class="btn btn-outline-primary mt-auto">Перейти</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if user_role == 'medic' %}
+{% if medic_stats %}
+<div class="row mt-4">
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Осмотров сегодня</h5>
+        <p class="text-muted">{{ medic_stats.checks_total }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Допущено</h5>
+        <p class="text-muted">{{ medic_stats.fit_total }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Не допущено</h5>
+        <p class="text-muted">{{ medic_stats.unfit_total }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>На больничном</h5>
+        <p class="text-muted">{{ medic_stats.sick_total }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Сотрудники</h5>
+        <p class="text-muted">Список и поиск</p>
+        <a href="{% url 'profiles:medic_employees_list' %}" class="btn btn-outline-success">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Медосмотры</h5>
+        <p class="text-muted">Журнал осмотров</p>
+        <a href="{% url 'profiles:medic_medical_checks_list' %}" class="btn btn-outline-success">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Новый медосмотр</h5>
+        <p class="text-muted">Утро / вечер</p>
+        <a href="{% url 'profiles:medic_medical_check_create' %}" class="btn btn-outline-success">Перейти</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 d-flex">
+    <div class="card h-100 w-100">
+      <div class="card-body text-center">
+        <h5>Больничные</h5>
+        <p class="text-muted">Выдача и контроль</p>
+        <a href="{% url 'profiles:medic_sick_leaves_list' %}" class="btn btn-outline-success">Перейти</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if user_role == 'user' %}
+  {% if not user.isActive %}
+    <div class="row justify-content-center mt-4">
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-body p-5">
+            <h3 class="mb-3">Ожидание подтверждения</h3>
+            <p class="text-muted mb-4">
+              Ваша учетная запись еще не подтверждена администратором.
+            </p>
+            <div class="alert alert-success">
+              После подтверждения вам станут доступны все функции системы.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="notification" id="work-status-notification">
+      <div class="notification-content">
+        {% if allowed_to_work_today %}
+          Вы допущены к работам
+        {% else %}
+          <div>Вы не допущены к будущим работам</div>
+          <small>
+            <strong>Причины:</strong>
+            <ul style="margin: 6px 0 0 18px; padding: 0;">
+              {% for reason in deny_reasons %}
+                <li>{{ reason }}</li>
+              {% empty %}
+                <li>Причина не определена.</li>
+              {% endfor %}
+            </ul>
+          </small>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if user.active_block %}
+    <div class="notification" id="block-notification">
+      <div class="notification-content">
+        <strong>Вы заблокированы!</strong>
+        Причина: {{ user.active_block.reason }}<br>
+        Блокировка действует до: {{ user.active_block.expires_at|date:"d.m.Y H:i" }}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-4">
+      <div class="col-md-3 mb-3 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-body text-center">
+            <h5 class="mt-3">Аттестации</h5>
+            <p class="text-muted">
+              {% if user.noCertifications %}
+                Все пройдены
+              {% else %}
+                Пройдите аттестации
+              {% endif %}
+            </p>
+            <a href="{% url 'profiles:user_test_list' %}" class="btn btn-outline-primary">Перейти</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-body text-center">
+            <h5 class="mt-3">Документы</h5>
+            <p class="text-muted">
+              {% if user.noDocuments %}
+                Все подписаны
+              {% else %}
+                Есть неподписанные документы
+              {% endif %}
+            </p>
+            <a href="{% url 'profiles:user_documents' %}" class="btn btn-outline-primary">Перейти</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-body text-center">
+            <h5 class="mt-3">Мои заказ-наряды</h5>
+            <p class="text-muted mb-3">&nbsp;</p>
+            <a href="{% url 'profiles:user_current_works' %}" class="btn btn-outline-primary">Перейти</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-body text-center">
+            <h5 class="mt-3">Нарушения ношения СИЗ</h5>
+            <p class="text-muted mb-3">&nbsp;</p>
+            <a href="{% url 'profiles:user_ppe_violations' %}" class="btn btn-outline-primary">Перейти</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>История прохождения аттестаций</h5>
+          </div>
+          <div class="card-body">
+            <a href="{% url 'profiles:user_test_history' %}" class="btn btn-outline-secondary">
+              Посмотреть историю
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+<script>
+function closeNotification(id) {
+  const notification = document.getElementById(id);
+  if (notification) {
+    notification.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => notification.remove(), 200);
+  }
+}
+</script>
+{% endblock %}

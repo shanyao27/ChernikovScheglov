@@ -1,0 +1,23 @@
+services:
+  web:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./media:/app/media
+      - ./ml_models:/app/ml_models
+      - ./yolov8n.pt:/app/yolov8n.pt
+    expose:
+      - "8000"
+    environment:
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+    depends_on:
+      - web

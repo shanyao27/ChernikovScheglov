@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Нарушения СИЗ{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Мои нарушения СИЗ</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Подтверждённые нарушения</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if violations %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Скриншот</th>
+              <th>Дата</th>
+              <th>Тип нарушения</th>
+              <th>Наряд</th>
+              <th>Время в видео</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in violations %}
+            <tr>
+              <td style="width: 220px;">
+                <a href="{{ v.image.url }}" target="_blank">
+                  <img src="{{ v.image.url }}"
+                       style="max-width: 200px; border: 1px solid var(--line); border-radius: 8px;">
+                </a>
+              </td>
+              <td>{{ v.created_at|date:"d.m.Y H:i" }}</td>
+              <td><strong>{{ v.get_violation_type_display }}</strong></td>
+              <td>
+                {% if v.inspection.work_object %}
+                  {{ v.inspection.work_object }}
+                {% else %}
+                  {{ v.inspection.object_number }}
+                {% endif %}
+              </td>
+              <td>{{ v.timestamp_sec|floatformat:1 }} сек</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body">
+        <div class="alert alert-custom mb-0">Пока нет подтверждённых нарушений</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

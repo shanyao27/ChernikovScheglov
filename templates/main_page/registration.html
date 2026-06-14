@@ -1,0 +1,90 @@
+{% extends "base_public.html" %}
+
+{% block title %}Регистрация сотрудника{% endblock %}
+
+{% block public_content %}
+<h2 class="text-center mb-4">Регистрация сотрудника</h2>
+
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">
+    {{ form.non_field_errors }}
+  </div>
+{% endif %}
+
+<form method="post" id="registrationForm">
+  {% csrf_token %}
+
+  {% for field in form %}
+    <div class="mb-3">
+      <label class="form-label">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        <div class="text-danger small mt-1">{{ field.errors }}</div>
+      {% endif %}
+      {% if field.help_text %}
+        <div class="form-text">{{ field.help_text }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <div class="alert alert-primary mt-3">
+    <small>
+      Логин будет сгенерирован автоматически на основе вашего ФИО.<br>
+      При выборе участка список доступных должностей автоматически обновится.
+    </small>
+  </div>
+
+  <button type="submit" class="btn btn-primary w-100 mt-3">
+    Зарегистрироваться
+  </button>
+</form>
+
+<p class="text-center mt-3">
+  Уже есть аккаунт? <a href="{% url 'main_page:login' %}">Войти</a>
+</p>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const departmentSelect = document.getElementById('id_department');
+    const positionSelect = document.getElementById('id_position');
+
+    if (departmentSelect && departmentSelect.value) {
+      loadPositions(departmentSelect.value);
+    }
+  });
+
+  function loadPositions(departmentId) {
+    const positionSelect = document.getElementById('id_position');
+
+    if (!departmentId) {
+      positionSelect.innerHTML = '<option value="">---------</option>';
+      return;
+    }
+
+    positionSelect.innerHTML = '<option value="">Загрузка...</option>';
+
+    fetch(`/get-positions/?department_id=${departmentId}`)
+      .then(response => response.json())
+      .then(data => {
+        positionSelect.innerHTML = '<option value="">---------</option>';
+        data.forEach(position => {
+          const option = document.createElement('option');
+          option.value = position.id;
+          option.textContent = position.name;
+          if (positionSelect.getAttribute('data-selected') == position.id) {
+            option.selected = true;
+          }
+          positionSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Ошибка:', error);
+        positionSelect.innerHTML = '<option value="">Ошибка загрузки</option>';
+      });
+  }
+
+  document.getElementById('id_department').addEventListener('change', function() {
+    loadPositions(this.value);
+  });
+</script>
+{% endblock %}

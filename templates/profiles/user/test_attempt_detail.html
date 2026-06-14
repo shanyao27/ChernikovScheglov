@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Тест: {{ attempt.test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header" style="background: var(--blue); color: var(--white);">
+      <h3 class="mb-0">{{ attempt.test.title }}</h3>
+      <p class="mb-0">Результат: {{ correct_count }}/{{ total_questions }} ({{ percent_correct|floatformat:0 }}%)</p>
+    </div>
+    <div class="card-body">
+      {% if attempt.passed %}
+        <div class="alert" style="background: var(--pale); border: 1px solid var(--mist); color: var(--navy); border-radius: 12px;">
+          Аттестация сдана! Поздравляем!
+        </div>
+      {% else %}
+        <div class="alert" style="background: var(--pale); border: 1px solid var(--mist); color: var(--navy); border-radius: 12px;">
+          Аттестация не сдана. Нужно 60% правильных ответов.
+        </div>
+      {% endif %}
+
+      <h5 class="mt-4">Все вопросы теста:</h5>
+
+      {% for q in questions_data %}
+      <div class="card mb-3">
+        <div class="card-header" style="{% if q.is_correct %}background: var(--blue); color: var(--white);{% else %}background: var(--navy); color: var(--white);{% endif %}">
+          <strong>Вопрос {{ forloop.counter }}</strong>
+        </div>
+        <div class="card-body">
+          <p class="fw-bold fs-5">{{ q.question_text }}</p>
+
+          <div class="mt-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" disabled
+                     {% if q.user_answer == q.option1 %}checked{% endif %}>
+              <label class="form-check-label {% if q.correct_answer == q.option1 %}text-primary fw-bold{% endif %}">
+                {{ q.option1 }}
+                {% if q.correct_answer == q.option1 %}(правильный ответ){% endif %}
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" disabled
+                     {% if q.user_answer == q.option2 %}checked{% endif %}>
+              <label class="form-check-label {% if q.correct_answer == q.option2 %}text-primary fw-bold{% endif %}">
+                {{ q.option2 }}
+                {% if q.correct_answer == q.option2 %}(правильный ответ){% endif %}
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" disabled
+                     {% if q.user_answer == q.option3 %}checked{% endif %}>
+              <label class="form-check-label {% if q.correct_answer == q.option3 %}text-primary fw-bold{% endif %}">
+                {{ q.option3 }}
+                {% if q.correct_answer == q.option3 %}(правильный ответ){% endif %}
+              </label>
+            </div>
+          </div>
+
+          {% if not q.is_correct %}
+          <div class="mt-2 text-danger">
+            <small>Ваш ответ: "{{ q.user_answer }}"</small>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="text-center mt-3">
+        <a href="{% url 'profiles:user_test_history' %}" class="btn btn-outline-primary">← К истории тестов</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

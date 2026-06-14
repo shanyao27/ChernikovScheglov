@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-4"><h2>{{ title }}</h2></div>
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+          {% for field in form %}
+            {% if field.name == 'department' or field.name == 'responsible_admin' %}
+              <div class="mb-3">
+                <label class="form-label">{{ field.label }}</label>
+                <div class="form-control-plaintext pt-1" style="border: 1px solid var(--line); border-radius: 10px; padding: 0.62rem 1rem; background: var(--pale);">
+                  {% if field.name == 'department' %}
+                    {{ admin_obj.department.name|default:'Не назначен' }}
+                  {% else %}
+                    {{ admin_obj.full_name|default:admin_obj.login }}
+                  {% endif %}
+                </div>
+                {% if field.name == 'department' %}
+                  <input type="hidden" name="{{ field.name }}" value="{{ admin_obj.department.id|default:'' }}">
+                {% else %}
+                  <input type="hidden" name="{{ field.name }}" value="{{ admin_obj.id }}">
+                {% endif %}
+                <div class="form-text text-muted">Поле определяется автоматически и не может быть изменено</div>
+              </div>
+            {% elif field.name != 'employees' %}
+              <div class="mb-3">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          <div class="mb-3">
+            <label class="form-label">Сотрудники в наряде</label>
+            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto; background: var(--white);">
+              <div class="mb-3">
+                <input type="text" class="form-control form-control-sm" id="searchEmployee" placeholder="Поиск по ФИО">
+              </div>
+              <div class="list-group">
+                {% regroup form.fields.employees.queryset by position.name as position_list %}
+                {% for position in position_list %}
+                  <div class="list-group-item" style="border-left: 3px solid var(--blue); margin-bottom: 5px; border-radius: 8px;">
+                    <div class="fw-bold mb-2" style="color: var(--navy);">
+                      {{ position.grouper|default:"Должность не указана" }}
+                      <span class="badge" style="background: var(--pale); color: var(--navy); float: right;">{{ position.list|length }}</span>
+                    </div>
+                    {% for emp in position.list %}
+                    {% if emp.role != 'lead' %}
+                      <div class="form-check ms-3 py-1" data-fio="{{ emp.FIO|lower }}">
+                        <input class="form-check-input employee-checkbox" type="checkbox"
+                               name="employees" value="{{ emp.id }}" id="emp_{{ emp.id }}"
+                               {% if emp in form.instance.employees.all %}checked{% endif %}>
+                        <label class="form-check-label" for="emp_{{ emp.id }}">
+                          {{ emp.FIO }}
+                          <span class="text-muted small">({{ emp.login }})</span>
+                          {% if emp.role == 'lead' %}
+                            <span class="badge" style="background: var(--blue); color: var(--white); margin-left: 8px;">Старший</span>
+                          {% endif %}
+                        </label>
+                      </div>
+                    {% endif %}
+                    {% endfor %}
+                  </div>
+                {% empty %}
+                  <div class="alert alert-custom text-center mb-0">
+                    Нет доступных сотрудников на вашем участке
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="mt-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="checkAll()">Выбрать всех</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="uncheckAll()">Снять всех</button>
+            </div>
+            {% if form.employees.errors %}
+              <div class="text-danger small mt-1">{{ form.employees.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'profiles:admin_workobjects_list' %}" class="btn btn-outline-secondary">Отмена</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function checkAll() {
+  document.querySelectorAll('.employee-checkbox').forEach(cb => cb.checked = true);
+}
+function uncheckAll() {
+  document.querySelectorAll('.employee-checkbox').forEach(cb => cb.checked = false);
+}
+
+document.getElementById('searchEmployee').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  document.querySelectorAll('.form-check').forEach(item => {
+    const fio = item.getAttribute('data-fio') || '';
+    if (searchTerm === '' || fio.includes(searchTerm)) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  document.querySelectorAll('.list-group-item').forEach(group => {
+    const visible = group.querySelectorAll('.form-check:not([style*="display: none"])').length;
+    if (visible === 0 && group.querySelector('.alert-custom') === null) {
+      group.style.display = 'none';
+    } else {
+      group.style.display = '';
+    }
+  });
+});
+</script>
+{% endblock %}

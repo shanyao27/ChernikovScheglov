@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Мои наряды{% endblock %}
+
+{% block content %}
+<style>
+  .btn-group .btn-outline-primary.active,
+  .btn-group .btn-outline-primary:active {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--royal) 100%);
+    color: var(--white) !important;
+    border-color: var(--blue);
+  }
+  .btn-group .btn-outline-primary.active:hover,
+  .btn-group .btn-outline-primary:active:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, var(--navy) 100%);
+    color: var(--white) !important;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Мои заказ-наряды</h2>
+  </div>
+
+  <div class="mb-4">
+    <div class="btn-group" role="group">
+      <a href="?status=all" class="btn btn-outline-primary {% if request.GET.status == 'all' or not request.GET.status %}active{% endif %}">Все</a>
+      <a href="?status=waiting" class="btn btn-outline-primary {% if request.GET.status == 'waiting' %}active{% endif %}">Ожидание начала</a>
+      <a href="?status=in_progress" class="btn btn-outline-primary {% if request.GET.status == 'in_progress' %}active{% endif %}">Выполняется</a>
+      <a href="?status=completed" class="btn btn-outline-primary {% if request.GET.status == 'completed' %}active{% endif %}">Завершенные</a>
+      <a href="?status=cancelled" class="btn btn-outline-primary {% if request.GET.status == 'cancelled' %}active{% endif %}">Отмененные</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      {% if my_works %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th class="text-center" style="width: 60px;">ID</th>
+              <th>Зона</th>
+              <th>Вид работ</th>
+              <th class="text-center">Дата и время</th>
+              <th class="text-center">Статус</th>
+              <th>Подробнее</th>
+              <th class="text-center">Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for work in my_works %}
+            <tr>
+              <td class="text-center fw-bold">#{{ work.id }}</td>
+              <td>{{ work.zone|default:work.address|default:'—' }}</td>
+              <td>{{ work.work_type|default:'—' }}</td>
+              <td class="text-center">{{ work.time|date:"d.m.Y H:i" }}</td>
+              <td class="text-center">
+                {% if work.status == 'waiting' %}
+                  <span class="badge bg-info">Ожидание начала</span>
+                {% elif work.status == 'in_progress' %}
+                  <span class="badge bg-primary">Выполняется</span>
+                {% elif work.status == 'completed' %}
+                  <span class="badge bg-success">Завершен</span>
+                {% elif work.status == 'cancelled' %}
+                  <span class="badge bg-secondary">Отменен</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ work.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td class="small">
+                <div>Старший: <strong>{{ work.leadEmployee.FIO|default:'не назначен' }}</strong></div>
+                <div>Состав: <strong>{{ work.employees.count }}</strong> чел.</div>
+                <div>Оплата: <strong>{{ work.payment }}</strong> ₽</div>
+              </td>
+              <td class="text-center">
+                <a href="{% url 'profiles:user_work_detail' work.id %}" class="btn btn-outline-info btn-sm me-1">
+                  Подробнее
+                </a>
+                {% if work.leadEmployee_id == user.id and work.status == 'in_progress' %}
+                <form method="post" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="complete">
+                  <input type="hidden" name="work_id" value="{{ work.id }}">
+                  <button class="btn btn-outline-success btn-sm" onclick="return confirm('Завершить наряд #{{ work.id }}?')">
+                    <i class="bi bi-check-lg"></i> Завершить
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <p class="text-muted mt-3 mb-0">Здесь пока ничего нет</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

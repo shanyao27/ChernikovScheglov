@@ -1,0 +1,8 @@
+{% extends "pages/base_error.html" %}
+{% load static %}
+
+{% block title %}500 - Ошибка сервера{% endblock %}
+
+{% block image %}
+  <img src="{% static 'images/500.png' %}" alt="500 Error" class="error-image" style="max-width: 500px; width: 100%;">
+{% endblock %}

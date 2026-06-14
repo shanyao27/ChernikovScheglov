@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Прохождение теста: {{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ test.title }}</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="background: var(--blue); color: var(--white);">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Вопрос {{ question_num }} из {{ total }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="question-box p-4" style="background: var(--pale); border-radius: 12px; margin-bottom: 1rem;">
+            <h4 class="mb-4">{{ question.text }}</h4>
+
+            <div class="options-list">
+              <div class="option-item p-3 mb-2 border rounded" style="background: var(--white);">
+                <strong>1.</strong> {{ question.option1 }}
+              </div>
+              <div class="option-item p-3 mb-2 border rounded" style="background: var(--white);">
+                <strong>2.</strong> {{ question.option2 }}
+              </div>
+              <div class="option-item p-3 mb-2 border rounded" style="background: var(--white);">
+                <strong>3.</strong> {{ question.option3 }}
+              </div>
+            </div>
+          </div>
+
+          <form method="post" class="mt-4">
+            {% csrf_token %}
+
+            <div class="mb-4">
+              <label class="form-label fw-bold fs-5 mb-3">Выберите правильный ответ:</label>
+
+              <div class="row g-3">
+                {% for radio in form.answer %}
+                  <div class="col-md-4">
+                    <div class="form-check">
+                      {{ radio.tag }}
+                      <label class="form-check-label btn w-100 p-3"
+                             style="border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer;"
+                             for="{{ radio.id_for_label }}">
+                        {{ radio.choice_label }}
+                      </label>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              {% if form.answer.errors %}
+                <div class="alert alert-danger mt-3">
+                  {{ form.answer.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn" style="background: var(--blue); color: var(--white);">
+                Ответить и продолжить
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <p></p>
+      <a href="{% url 'profiles:user_test_list' %}" class="btn btn-outline-secondary">
+        Назад
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-check-input { display: none; }
+
+  .form-check-input:checked + .form-check-label {
+    background: var(--blue) !important;
+    color: var(--white) !important;
+    border-color: var(--blue) !important;
+    transform: scale(1.02);
+    transition: all 0.2s;
+  }
+
+  .form-check-label {
+    display: block;
+    text-align: center;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+  }
+
+  .form-check-label:hover {
+    background: var(--pale);
+    transform: scale(1.02);
+  }
+
+  .option-item:hover {
+    background: var(--pale) !important;
+    border-color: var(--blue) !important;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('.form-check-input');
+
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', function() {
+        document.querySelectorAll('.form-check-label').forEach(label => {
+          label.style.background = '';
+          label.style.color = '';
+          label.style.borderColor = '';
+        });
+
+        if (this.checked) {
+          const label = document.querySelector(`label[for="${this.id}"]`);
+          label.style.background = 'var(--blue)';
+          label.style.color = 'white';
+          label.style.borderColor = 'var(--blue)';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
