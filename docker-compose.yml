@@ -10,6 +10,26 @@ services:
       - "8000"
     environment:
       - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+    restart: unless-stopped
+
+  video_worker:
+    build: .
+    command: sh -c "sleep 10 && python manage.py process_video_queue"
+    volumes:
+      - ./data:/app/data
+      - ./media:/app/media
+      - ./ml_models:/app/ml_models
+      - ./yolov8n.pt:/app/yolov8n.pt
+    environment:
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - OPENBLAS_NUM_THREADS=1
+      - NUMEXPR_NUM_THREADS=1
+      - PYTHONFAULTHANDLER=1
+    depends_on:
+      - web
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -21,3 +41,4 @@ services:
       - ./media:/app/media
     depends_on:
       - web
+    restart: unless-stopped
