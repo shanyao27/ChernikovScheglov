@@ -12,8 +12,8 @@
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/shanyao27/ChernikovScheglov.git
-cd ChernikovScheglov
+git clone https://github.com/shanyao27/B9122-09.03.04-ChernikovScheglov
+cd B9122-09.03.04-ChernikovScheglov
 ```
 
 ### 2. Собрать и запустить контейнеры
