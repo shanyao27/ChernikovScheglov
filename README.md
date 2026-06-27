@@ -60,7 +60,7 @@ http://localhost
 | `inspector_transport` | `inspector_transport` | Инспектор транспортного участка |
 | `inspector_mech` | `inspector_mech` | Инспектор механического участка |
 
-### 5. Визуализация
+### 5. Скриншоты некоторых страниц программного решения
 
 1. Приветственная страница
 <img width="2940" height="1438" alt="image" src="https://github.com/user-attachments/assets/6a6c046b-0cc3-4963-9a39-08bf7ca285ee"/>
@@ -69,7 +69,7 @@ http://localhost
 3. Панель администратора (аналогично для инспектора и медицинского работника)
 <img width="1470" height="721" alt="Снимок экрана 2026-06-27 в 15 00 47" src="https://github.com/user-attachments/assets/7ae06a0c-ec21-49e5-8d1a-d4f27a28a138" />
 4. Страница регистрации
-![Uploading Снимок экрана 2026-06-27 в 15.01.40.png…]()
+<img width="1470" height="721" alt="Снимок экрана 2026-06-27 в 15 23 30" src="https://github.com/user-attachments/assets/10c87b8f-7bed-4bdb-80a1-5ce4c37a19a1" />
 5. Подтверждение регистрации пользователя
 <img width="1470" height="719" alt="Снимок экрана 2026-06-27 в 15 02 47" src="https://github.com/user-attachments/assets/5637eaea-e45e-486b-ba47-65b476376ab8" />
 6. Панель сотрудника
